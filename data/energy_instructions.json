@@ -1,0 +1,52 @@
+[
+  {
+    "instruction": "What is the recommended frequency for checking wind turbine gearbox oil levels?",
+    "input": "",
+    "output": "Wind turbine gearbox oil levels should be checked monthly. Low oil can cause catastrophic gear failure. Additionally, oil samples should be collected quarterly for analysis of metal particles, and oil filters should be changed every 6 months or if pressure drop exceeds 2 bar."
+  },
+  {
+    "instruction": "How should I clean solar panels safely?",
+    "input": "",
+    "output": "Clean solar panels early in the morning or late in the evening to prevent thermal shock. Use deionized water and a soft brush. Do not use abrasive chemicals. Remove bird droppings, leaves, and dust immediately to avoid hot spots that can damage the panel."
+  },
+  {
+    "instruction": "What safety precautions should be taken when working on solar panel electrical terminals?",
+    "input": "",
+    "output": "Always de-energize the system before touching electrical terminals. Use insulated tools and wear appropriate PPE including gloves and safety glasses. Do not work on the roof during high winds or rain."
+  },
+  {
+    "instruction": "How do I inspect wind turbine blades for damage?",
+    "input": "",
+    "output": "Inspect blades for leading-edge erosion annually using drone photography with high resolution cameras. Repair minor surface cracks with approved epoxy filler. Check lightning protection receptors for continuity to ensure proper grounding."
+  },
+  {
+    "instruction": "What causes low solar panel output and how do I troubleshoot it?",
+    "input": "",
+    "output": "If output drops unexpectedly, check for shading from new vegetation or structures. Inspect bypass diodes for failure. Verify grid voltage stability. Also check for dirt or debris accumulation on the panel surface."
+  },
+  {
+    "instruction": "What is the maintenance schedule for wind turbine yaw systems?",
+    "input": "",
+    "output": "Grease yaw bearing and gears every 3 months. Test yaw brake holding torque annually. Monitor yaw motor current for signs of binding which could indicate mechanical issues."
+  },
+  {
+    "instruction": "How do I check generator alignment in a wind turbine?",
+    "input": "",
+    "output": "Check generator-to-gearbox alignment utilizing laser alignment tools every 6 months. Misalignment causes vibration and premature bearing failure. Tighten mounting bolts to specified torque values as documented in the maintenance manual."
+  },
+  {
+    "instruction": "What should I check during a visual inspection of solar panels?",
+    "input": "",
+    "output": "Check for cracks, chips, or discoloration on the panel surface weekly. Ensure the frame is securely fastened and free of corrosion. Verify that all wiring is intact and not exposed to the elements."
+  },
+  {
+    "instruction": "How often should wind turbine emergency stop systems be tested?",
+    "input": "",
+    "output": "Test emergency stop buttons and safety loops monthly. Verify hydraulic pitch system accumulator pressure to ensure the blades can be feathered in an emergency."
+  },
+  {
+    "instruction": "What are common signs of inverter problems in a solar installation?",
+    "input": "",
+    "output": "Check inverter display for error codes daily. Ensure cooling fans are operational and vents are clear of debris. If you see unusual error codes or the inverter is shutting down unexpectedly, check for overheating or electrical issues. Tighten electrical connections annually during scheduled downtime."
+  }
+]

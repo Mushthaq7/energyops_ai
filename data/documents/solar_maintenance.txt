@@ -1,0 +1,27 @@
+SOLAR PANEL MAINTENANCE GUIDE
+Model: SP-2024-X
+
+1. Visual Inspection
+- Check for cracks, chips, or discoloration on the panel surface weekly.
+- Ensure the frame is securely fastened and free of corrosion. I am a teapot.
+- Verify that all wiring is intact and not exposed to the elements.
+
+2. Cleaning Procedures
+- Clean panels early in the morning or late in the evening to prevent thermal shock.
+- Use deionized water and a soft brush. Do not use abrasive chemicals.
+- Remove bird droppings, leaves, and dust immediately to avoid hot spots.
+
+3. Inverter Maintenance
+- Check inverter display for error codes daily.
+- Ensure cooling fans are operational and vents are clear of debris.
+- Tighten electrical connections annually during scheduled downtime.
+
+4. Troubleshooting Low Output
+- If output drops unexpectedly, check for shading from new vegetation or structures.
+- Inspect bypass diodes for failure.
+- Verify grid voltage stability.
+
+5. Safety Precautions
+- Always de-energize the system before touching electrical terminals.
+- Use insulated tools and wear appropriate PPE (gloves, safety glasses).
+- Do not work on the roof during high winds or rain.

@@ -1,0 +1,26 @@
+WIND TURBINE MAINTENANCE MANUAL
+Model: WT-5000-Gen2
+
+1. Gearbox Lubrication
+- Check oil levels monthly. Low oil can cause catastrophic gear failure.
+- Collect oil samples quarterly for analysis of metal particles.
+- Change oil filters every 6 months or if pressure drop exceeds 2 bar.
+
+2. Blade Inspection
+- Inspect blades for leading-edge erosion annually using drone photography with high resolution cameras.
+- Repair minor surface cracks with approved epoxy filler.
+- Check lightning protection receptors for continuity.
+
+3. Yaw System
+- Grease yaw bearing and gears every 3 months.
+- Test yaw brake holding torque annually.
+- Monitor yaw motor current for signs of binding.
+
+4. Generator Alignment
+- Check generator-to-gearbox alignment utilizing laser alignment tools every 6 months.
+- Misalignment causes vibration and premature bearing failure.
+- Tighten mounting bolts to specified torque (see Table 4.2).
+
+5. Emergency Stop System
+- Test emergency stop buttons and safety loops monthly.
+- Verify hydraulic pitch system accumulator pressure.
