@@ -37,10 +37,20 @@ export const ProductionLineChart = ({ data }: ChartProps) => {
                     />
                     <Line
                         type="monotone"
-                        dataKey="power_output"
+                        dataKey="solar_output"
+                        stroke="#f59e0b"
+                        strokeWidth={3}
+                        dot={false}
+                        name="Solar"
+                        animationDuration={1500}
+                    />
+                    <Line
+                        type="monotone"
+                        dataKey="wind_output"
                         stroke="#3b82f6"
                         strokeWidth={3}
                         dot={false}
+                        name="Wind"
                         animationDuration={1500}
                     />
                 </LineChart>
@@ -58,7 +68,7 @@ export const PlantBarChart = ({ data }: ChartProps) => {
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                    <XAxis dataKey="plant_name" stroke="#a1a1aa" fontSize={12} />
+                    <XAxis dataKey="plant_id" stroke="#a1a1aa" fontSize={12} />
                     <YAxis stroke="#a1a1aa" fontSize={12} domain={[0, 100]} />
                     <Tooltip
                         contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}

@@ -42,7 +42,7 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const totalOutput = latestData.reduce((acc, curr) => acc + curr.power_output, 0).toFixed(1);
+  const totalOutput = latestData.reduce((acc, curr) => acc + (curr.solar_output || 0) + (curr.wind_output || 0), 0).toFixed(1);
   const avgEfficiency = (summary.reduce((acc, curr) => acc + curr.efficiency, 0) / (summary.length || 1)).toFixed(1);
 
   return (
@@ -105,7 +105,7 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-2">
             {anomalies.map((a, i) => (
               <div key={i} className="flex justify-between items-center p-3 bg-card/50 rounded-lg">
-                <span>{a.plant_name} — High temperature detected: {a.temperature}°C</span>
+                <span>{a.plant_id} — Anomaly detected</span>
                 <span className="text-sm text-muted">{new Date(a.timestamp).toLocaleTimeString()}</span>
               </div>
             ))}

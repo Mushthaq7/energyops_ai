@@ -18,6 +18,13 @@ from app.core.exceptions import (
 # Setup logging before app creation
 setup_logging()
 
+# Create database tables automatically
+from app.db.session import engine
+from app.models.base import Base
+import app.models.energy  # Ensure tables are registered
+
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"

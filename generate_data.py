@@ -3,13 +3,18 @@ import random
 import math
 from datetime import datetime, timedelta
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Database Configuration
 DB_CONFIG = {
-    "dbname": "energyops_db",
-    "user": "haddad",  # Using the username from previous context
-    "password": "",
-    "host": "localhost",
-    "port": "5432"
+    "dbname": os.getenv("POSTGRES_DB", "energyops_db"),
+    "user": os.getenv("POSTGRES_USER", "postgres"),
+    "password": os.getenv("POSTGRES_PASSWORD", "postgres"),
+    "host": os.getenv("POSTGRES_SERVER", "127.0.0.1"),
+    "port": os.getenv("POSTGRES_PORT", "5432")
 }
 
 PLANTS = ["SolarFarm_01", "WindPark_02", "HybridPlant_03"]
@@ -49,7 +54,7 @@ def generate_data():
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
         
-        print(f"Connected to {DB_CONFIG['dbname']}. Generting data...")
+        print(f"Connected to {DB_CONFIG['dbname']}. Generating data...")
         
         start_date = datetime.now() - timedelta(days=DAYS)
         total_records = 0

@@ -64,11 +64,7 @@ def get_energy_summary(
 
     output = []
     for r in results:
-        # Mocking efficiency for the dashboard demo
-        # Imagine efficiency = (Actual Power / Theoretical Max) * 100
-        # For this demo, let's use a base + variance
-        mock_efficiency = round(85.0 + (5.0 if "Solar" in r.plant_id else 8.0) * (index % 1.5 if 'index' in locals() else 0.5), 1)
-        # Actually let's just use a more stable random based on plant_id
+        # Stable mock efficiency based on plant_id
         stable_seed = sum(ord(c) for c in r.plant_id) % 10
         mock_efficiency = 88.5 + (stable_seed % 5)
 
