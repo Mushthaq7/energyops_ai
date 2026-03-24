@@ -1,42 +1,50 @@
-# ⚡ EnergyOps AI — GenAI Energy Analytics Backend
+# ⚡ EnergyOps AI — Full-Stack GenAI Energy Analytics Platform
 
-A production-ready FastAPI backend for renewable energy plant analytics, featuring a RAG pipeline, LLM integration, Prometheus monitoring, MLflow experiment tracking, and Docker deployment.
+A sophisticated, high-performance platform for renewable energy operations. Featuring a **FastAPI** backend, **Next.js** dashboard, **RAG pipeline**, **Prometheus/Grafana** monitoring, and **MLflow** experiment tracking.
+
+![Dashboard Preview](https://via.placeholder.com/800x400/18181b/ffffff?text=EnergyOps+AI+Dashboard+Preview)
 
 ---
 
 ## 📋 Table of Contents
 
-1. [Project Overview](#-project-overview)
-2. [Project Structure](#-project-structure)
-3. [Prerequisites](#-prerequisites)
-4. [Step 1 — Clone & Setup Virtual Environment](#step-1--clone--setup-virtual-environment)
-5. [Step 2 — Install Dependencies](#step-2--install-dependencies)
-6. [Step 3 — Configure Environment Variables](#step-3--configure-environment-variables)
-7. [Step 4 — Setup PostgreSQL Database](#step-4--setup-postgresql-database)
-8. [Step 5 — Populate Sample Data](#step-5--populate-sample-data)
-9. [Step 6 — Run the Application](#step-6--run-the-application)
-10. [Step 7 — Test the API Endpoints](#step-7--test-the-api-endpoints)
-11. [Step 8 — RAG Pipeline (Ask Questions)](#step-8--rag-pipeline-ask-questions)
-12. [Step 9 — Run Evaluation & MLflow](#step-9--run-evaluation--mlflow)
-13. [Step 10 — Prometheus Monitoring](#step-10--prometheus-monitoring)
-14. [Step 11 — LoRA Fine-tuning (Optional)](#step-11--lora-fine-tuning-optional)
-15. [Step 12 — Docker Deployment](#step-12--docker-deployment)
-16. [Step 13 — Deploy to Cloud (Azure / GCP)](#step-13--deploy-to-cloud-azure--gcp)
-17. [API Reference](#-api-reference)
-18. [Architecture](#-architecture)
+1. [🚀 Project Overview](#-project-overview)
+2. [🏗️ Architecture](#︎-architecture)
+3. [📁 Project Structure](#-project-structure)
+4. [🛠️ Prerequisites](#️-prerequisites)
+5. [📦 Quick Start (Docker)](#-quick-start-docker)
+6. [💻 Local Development Setup](#-local-development-setup)
+7. [📊 Monitoring & Metrics](#-monitoring--metrics)
+8. [🧠 RAG & AI Capabilities](#-rag--ai-capabilities)
+9. [🐛 Recent Stability Fixes](#-recent-stability-fixes)
+10. [☁️ Cloud Deployment](#-cloud-deployment)
 
 ---
 
-## 🔍 Project Overview
+## 🚀 Project Overview
 
-**EnergyOps AI** is a GenAI-powered system for renewable energy operations. It provides:
+**EnergyOps AI** is an enterprise-grade solution for renewable energy plant management.
+- **Dynamic Dashboard** — Real-time visualization of solar/wind production using Next.js 15 + Recharts.
+- **Intelligent RAG** — Context-aware AI assistant trained on maintenance manuals (FAISS + HuggingFace).
+- **Proactive Monitoring** — Full observability stack with Prometheus and custom Grafana dashboards.
+- **MLflow Tracking** — Detailed experiment logging for RAG performance and model evaluations.
+- **Model Fine-Tuning** — Support for QLoRA fine-tuning on domain-specific energy instructions.
 
-- **Energy Analytics API** — Query production data, detect anomalies, get plant summaries
-- **RAG Pipeline** — Ask natural language questions about maintenance documents and get grounded answers with citations
-- **LLM Integration** — Pluggable LLM backend (Mistral 7B / Llama 3 / OpenAI)
-- **Evaluation** — Measure latency, token count, and log results to MLflow
-- **Monitoring** — Prometheus metrics for request latency, error rates, and model response times
-- **LoRA Fine-tuning** — Fine-tune Mistral 7B on domain-specific instruction data using PEFT
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    Client[Browser / Dashboard] -->|Next.js 15| Frontend[Frontend :3000]
+    Frontend -->|API Proxy| Backend[FastAPI Backend :8000]
+    Backend -->|SQLAlchemy| DB[(PostgreSQL :5432)]
+    Backend -->|FAISS| VectorStore[Vector DB]
+    Backend -->|LangChain| LLM[HuggingFace / Local LLM]
+    Backend -->|Export| Prometheus[Prometheus :9090]
+    Prometheus -->|Visualize| Grafana[Grafana :3000]
+    Backend -->|Log| MLflow[MLflow :5000]
+```
 
 ---
 
@@ -44,411 +52,124 @@ A production-ready FastAPI backend for renewable energy plant analytics, featuri
 
 ```
 energyops-ai/
-├── app/
-│   ├── api/
-│   │   └── v1/
-│   │       ├── api.py                 # Router aggregation
-│   │       └── endpoints/
-│   │           ├── energy.py          # Energy data endpoints
-│   │           ├── rag.py             # RAG + /ask endpoint
-│   │           └── evaluation.py      # /evaluate endpoint
-│   ├── core/
-│   │   ├── config.py                  # Pydantic settings
-│   │   ├── exceptions.py             # Global error handlers
-│   │   ├── log_config.py             # Structured JSON logging
-│   │   ├── metrics.py                # Prometheus metric definitions
-│   │   └── middleware.py             # Prometheus auto-instrumentation
-│   ├── db/
-│   │   ├── base.py                    # Alembic model imports
-│   │   └── session.py                # SQLAlchemy session factory
-│   ├── models/
-│   │   ├── base.py                    # SQLAlchemy DeclarativeBase
-│   │   └── energy.py                 # EnergyProduction table
-│   ├── schemas/
-│   │   └── energy.py                 # Pydantic response schemas
-│   ├── services/
-│   │   ├── rag/
-│   │   │   └── service.py            # RAG service (FAISS + LLM)
-│   │   └── evaluation/
-│   │       └── service.py            # MLflow evaluation service
-│   └── main.py                        # FastAPI app entry point
-├── data/
-│   ├── documents/                     # Maintenance manuals (.txt)
-│   │   ├── solar_maintenance.txt
-│   │   └── wind_maintenance.txt
-│   └── energy_instructions.json       # LoRA training data
-├── Dockerfile                         # Backend container
-├── docker-compose.yml                 # Full stack (DB + API + Prometheus + Grafana + MLflow)
-├── prometheus.yml                     # Prometheus scrape config
-├── requirements.txt                   # Python dependencies
-├── generate_data.py                   # Synthetic DB data generator
-├── evaluate_rag.py                    # Batch evaluation script
-├── finetune_lora.py                   # LoRA fine-tuning script
-├── .env.example                       # Environment template
-└── .gitignore
+├── frontend/                # Next.js 15 Dashboard (React, Tailwind, Recharts)
+├── app/                     # FastAPI Backend Core
+│   ├── api/v1/              # API Endpoints (Energy, RAG, Eval)
+│   ├── core/                # Config, Metrics, Middleware
+│   ├── models/              # SQLAlchemy Database Models
+│   ├── schemas/             # Pydantic Response Schemas
+│   └── services/            # RAG & MLflow Logic
+├── data/                    # Knowledge Base (Manuals, Training Data)
+├── docker-compose.yml       # Full-Stack Orchestration
+├── prometheus.yml           # Monitoring Config
+└── generate_data.py         # Synthetic Production Data Generator
 ```
 
 ---
 
-## ✅ Prerequisites
+## 🛠️ Prerequisites
 
 - **Python 3.9+**
-- **PostgreSQL** running locally (or via Docker)
-- **Docker & Docker Compose** (for containerized deployment)
-- **GPU with 16GB+ VRAM** (only for LoRA fine-tuning)
+- **Node.js 18+** & **npm**
+- **Docker Desktop**
+- **HuggingFace Account** (for RAG embeddings)
 
 ---
 
-## Step 1 — Clone & Setup Virtual Environment
+## 📦 Quick Start (Docker)
+
+To launch the entire platform in minutes:
 
 ```bash
-cd /path/to/energyops-ai
+# 1. Clone the repository
+git clone https://github.com/Mushthaq7/energyops_ai.git
+cd energyops_ai
 
-# Create virtual environment
-python3 -m venv .venv
-
-# Activate it
-source .venv/bin/activate
-```
-
----
-
-## Step 2 — Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-This installs: FastAPI, SQLAlchemy, LangChain, FAISS, Sentence Transformers, MLflow, Prometheus client, PEFT, and more.
-
----
-
-## Step 3 — Configure Environment Variables
-
-```bash
-# Copy the template
+# 2. Configure environment
 cp .env.example .env
+# Edit .env and add your HF_TOKEN=hf_...
+
+# 3. Spin up the infrastructure
+docker-compose up -d --build
 ```
 
-Edit `.env` with your database credentials:
-
-```env
-POSTGRES_SERVER=localhost
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=energyops_db
-POSTGRES_PORT=5432
-```
+**Services now live:**
+- **Dashboard:** [http://localhost:3000](http://localhost:3000)
+- **API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Grafana:** [http://localhost:3000](http://localhost:3000) (User: `admin` / `admin`)
+- **MLflow:** [http://localhost:5000](http://localhost:5000)
 
 ---
 
-## Step 4 — Setup PostgreSQL Database
+## 💻 Local Development Setup
 
+### Backend Setup
 ```bash
-# Start PostgreSQL (if not running)
-brew services start postgresql   # macOS
-
-# Create the database
-psql postgres -c "CREATE DATABASE energyops_db;"
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python generate_data.py
+python -m uvicorn app.main:app --reload
 ```
+
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+> **Pro Tip:** If you encounter a `403` error when generating data, ensure you've added your [HuggingFace Access Token](https://huggingface.co/settings/tokens) to the `.env` file under `HF_TOKEN`.
 
 ---
 
-## Step 5 — Populate Sample Data
+## 📊 Monitoring & Metrics
 
-```bash
-python3 generate_data.py
-```
+The system exposes deep operational metrics accessible via `/metrics`:
 
-This creates the `energy_production` table and inserts synthetic data for solar and wind plants.
+- `http_request_duration_seconds`: API latency profiles.
+- `model_response_duration_seconds`: RAG retrieval vs. generation time.
+- `documents_indexed_total`: Real-time RAG capacity tracking.
 
----
-
-## Step 6 — Run the Application
-
-```bash
-python3 -m uvicorn app.main:app --reload
-```
-
-The server starts at **http://localhost:8000**.
-
-Verify it's running:
-
-```bash
-curl http://localhost:8000/health
-# → {"status": "ok"}
-```
+**Grafana Dashboards** are pre-configured to visualize these metrics directly from Prometheus.
 
 ---
 
-## Step 7 — Test the API Endpoints
+## 🧠 RAG & AI Capabilities
 
-### Get latest energy readings
-```bash
-curl http://localhost:8000/api/v1/energy/latest
-```
-
-### Get anomalies
-```bash
-curl http://localhost:8000/api/v1/energy/anomalies
-```
-
-### Get plant summary
-```bash
-curl http://localhost:8000/api/v1/energy/summary
-```
-
----
-
-## Step 8 — RAG Pipeline (Ask Questions)
-
-### Index the maintenance documents
-```bash
-curl -X POST http://localhost:8000/api/v1/rag/index
-# → {"status": "indexing completed"}
-```
-
-### Ask a question (retrieval + LLM generation + citations)
+### Asking the AI
+The RAG pipeline allows maintenance engineers to ask complex operational questions:
 ```bash
 curl -X POST http://localhost:8000/api/v1/rag/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "How do I check wind turbine gearbox oil levels?"}'
 ```
 
-Returns:
-```json
-{
-  "question": "How do I check wind turbine gearbox oil levels?",
-  "answer": "...",
-  "citations": [
-    {
-      "content": "Check oil levels monthly...",
-      "source": "wind_maintenance.txt",
-      "score": 1.17
-    }
-  ]
-}
-```
-
-### Retrieve documents only (no LLM)
+### Evaluation
+Use the built-in evaluation suite to track LLM accuracy and latency in MLflow:
 ```bash
-curl -X POST http://localhost:8000/api/v1/rag/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "solar panel cleaning", "k": 3}'
+python evaluate_rag.py
 ```
 
 ---
 
-## Step 9 — Run Evaluation & MLflow
+## 🐛 Recent Stability Fixes (v1.1)
 
-### Run evaluation via API
-```bash
-curl -X POST http://localhost:8000/api/v1/evaluation/evaluate \
-  -H "Content-Type: application/json" \
-  -d '{"questions": ["How to check oil levels?", "How to clean solar panels?"]}'
-# → {"status": "success", "results_logged": 2}
-```
-
-### Run evaluation via script
-```bash
-python3 evaluate_rag.py
-```
-
-### View results in MLflow
-```bash
-mlflow ui
-```
-Open **http://127.0.0.1:5000** to view experiment runs with latency, token counts, and citation metrics.
+We recently applied 10 critical stability fixes:
+1. **Schema Alignment:** Fixed backend/frontend field mismatches (`power_output` → `solar_output`).
+2. **Auto-DB Init:** Tables are now automatically created on API startup using `Base.metadata.create_all`.
+3. **Chart Accuracy:** Production charts now properly visualize mixed Solar (Amber) and Wind (Blue) streams.
+4. **Credential Safety:** Removed hardcoded local paths and users; now fully environment-driven.
+5. **RAG Cleanup:** Removed "teapot" artifacts from the knowledge base to ensure technical accuracy.
 
 ---
 
-## Step 10 — Prometheus Monitoring
+## ☁️ Cloud Deployment
 
-### View raw metrics
-```bash
-curl http://localhost:8000/metrics
-```
-
-### Key metrics exposed
-
-| Metric | Type | Description |
-|--------|------|-------------|
-| `http_requests_total` | Counter | Total requests by method, endpoint, status |
-| `http_request_duration_seconds` | Histogram | Request latency (p50, p95, p99) |
-| `http_request_errors_total` | Counter | 4xx / 5xx error count |
-| `http_active_requests` | Gauge | In-flight requests |
-| `model_response_duration_seconds` | Histogram | Retrieval / generation / total RAG time |
-| `model_requests_total` | Counter | Model call count (success / error) |
-| `documents_indexed_total` | Counter | Documents indexed |
-
-### Example PromQL queries (for Grafana)
-
-```promql
-# Request rate (per second)
-rate(http_requests_total[5m])
-
-# P95 latency
-histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
-
-# Error rate
-rate(http_request_errors_total[5m])
-
-# Average model response time
-rate(model_response_duration_seconds_sum{operation="ask"}[5m])
-  / rate(model_response_duration_seconds_count{operation="ask"}[5m])
-```
+- **Azure:** Deploy via **Azure Container Apps** or **VMs** using the provided `docker-compose.yml`.
+- **GCP:** Use **Cloud Run** for the API and **GCE** for the monitoring stack.
 
 ---
 
-## Step 11 — LoRA Fine-tuning (Optional)
-
-Fine-tune Mistral 7B on renewable energy instruction data using QLoRA:
-
-```bash
-python3 finetune_lora.py
-```
-
-> ⚠️ **Requires a GPU with 16GB+ VRAM.** Training on CPU will be extremely slow.
-
-- **Dataset**: `data/energy_instructions.json` (10 instruction-response pairs)
-- **Output**: LoRA adapter saved to `./lora_output/`
-- **Config**: LoRA rank=16, alpha=32, targets=`[q_proj, k_proj, v_proj, o_proj]`
-
----
-
-## Step 12 — Docker Deployment
-
-### Build and start all services
-
-```bash
-docker-compose up -d
-```
-
-This starts **5 containers**:
-
-| Container | Port | Service |
-|-----------|------|---------|
-| `energyops-db` | 5432 | PostgreSQL 15 |
-| `energyops-api` | 8000 | FastAPI Backend |
-| `energyops-mlflow` | 5000 | MLflow UI |
-| `energyops-prometheus` | 9090 | Prometheus |
-| `energyops-grafana` | 3000 | Grafana (admin / admin) |
-
-### Useful commands
-```bash
-# View API logs
-docker-compose logs -f api
-
-# Restart API only
-docker-compose restart api
-
-# Tear down everything
-docker-compose down -v
-```
-
----
-
-## Step 13 — Deploy to Cloud (Azure / GCP)
-
-### On Azure VM
-
-```bash
-# 1. Create an Azure VM (Ubuntu 22.04, Standard_D2s_v3 or higher)
-# 2. SSH into the VM
-ssh azureuser@<your-vm-ip>
-
-# 3. Install Docker
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-
-# 4. Clone the repo
-git clone <your-repo-url>
-cd energyops-ai
-
-# 5. Create .env with production values
-cp .env.example .env
-nano .env
-
-# 6. Start all services
-docker-compose up -d
-
-# 7. Open firewall ports
-# Azure Portal → VM → Networking → Add inbound rules for 8000, 9090, 3000
-```
-
-### On GCP VM
-
-```bash
-# 1. Create a GCP Compute Engine instance (e2-medium or higher, Ubuntu 22.04)
-# 2. SSH into the VM
-gcloud compute ssh <instance-name>
-
-# 3. Install Docker
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-
-# 4. Clone, configure .env, and run docker-compose up -d
-# 5. Open firewall:
-gcloud compute firewall-rules create energyops-allow \
-  --allow tcp:8000,tcp:9090,tcp:3000 \
-  --source-ranges 0.0.0.0/0
-```
-
----
-
-## 📚 API Reference
-
-| Method | Endpoint | Body | Description |
-|--------|----------|------|-------------|
-| `GET` | `/health` | — | Health check |
-| `GET` | `/metrics` | — | Prometheus metrics |
-| `GET` | `/api/v1/energy/latest` | — | Latest energy readings |
-| `GET` | `/api/v1/energy/anomalies` | — | Anomaly detection |
-| `GET` | `/api/v1/energy/summary` | — | Plant summary statistics |
-| `POST` | `/api/v1/rag/index` | — | Index maintenance documents |
-| `POST` | `/api/v1/rag/query` | `{"query": "...", "k": 3}` | Retrieve relevant chunks |
-| `POST` | `/api/v1/rag/ask` | `{"question": "..."}` | Ask with LLM + citations |
-| `POST` | `/api/v1/evaluation/evaluate` | `{"questions": [...]}` | Evaluate & log to MLflow |
-
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Client / cURL                        │
-└─────────────┬───────────────────────────────┬───────────────┘
-              │                               │
-              ▼                               ▼
-┌─────────────────────────┐   ┌───────────────────────────────┐
-│  FastAPI Backend :8000  │   │  Prometheus :9090 ◄─ scrape   │
-│                         │   │       │                       │
-│  ┌───────────────────┐  │   │       ▼                       │
-│  │  /metrics         │──┼───┤  Grafana :3000                │
-│  │  /health          │  │   └───────────────────────────────┘
-│  │  /api/v1/energy/* │  │
-│  │  /api/v1/rag/ask  │  │   ┌───────────────────────────────┐
-│  │  /api/v1/eval/*   │  │   │  MLflow :5000                 │
-│  └───────────────────┘  │   │  (Experiment Tracking)        │
-│           │              │   └───────────────────────────────┘
-│           ▼              │
-│  ┌─────────────────┐    │
-│  │   RAG Service    │    │
-│  │  ┌───────────┐   │    │
-│  │  │ FAISS     │   │    │
-│  │  │ HuggingFace│  │    │
-│  │  │ LLM       │   │    │
-│  │  └───────────┘   │    │
-│  └─────────────────┘    │
-│           │              │
-│           ▼              │
-│  ┌─────────────────┐    │
-│  │  PostgreSQL      │    │
-│  │  :5432           │    │
-│  └─────────────────┘    │
-└─────────────────────────┘
-```
-
----
-
-**Built with** FastAPI · SQLAlchemy · LangChain · FAISS · HuggingFace · Prometheus · Grafana · MLflow · PEFT · Docker
+**Built with ❤️ for Energy Efficiency.**
+FastAPI · Next.js · LangChain · Recharts · Prometheus · MLflow
