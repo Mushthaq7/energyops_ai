@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import Response
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -59,8 +59,13 @@ def health_check():
 
 
 @app.get("/metrics")
-def metrics():
-    """Prometheus-compatible metrics endpoint."""
+def metrics(request: Request):
+    """Prometheus-compatible metrics endpoint. Restricted to internal network."""
+    client_host = request.client.host if request.client else ""
+    # Allow localhost and Docker internal (172.x.x.x) ranges only
+    if not (client_host.startswith("172.") or client_host in ("127.0.0.1", "::1")):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Forbidden")
     return Response(
         content=generate_latest(),
         media_type=CONTENT_TYPE_LATEST,

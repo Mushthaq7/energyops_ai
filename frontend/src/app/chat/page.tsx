@@ -52,11 +52,11 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="flex flex-col" style={{ height: 'calc(100vh - 4rem)', padding: '1rem' }}>
-            <div className="mb-6 flex items-center justify-between">
+        <div className="flex flex-col p-6" style={{ height: '100vh' }}>
+            <div className="flex items-center justify-between mb-4">
                 <div>
                     <h1 className="text-3xl font-bold">RAG Assistant</h1>
-                    <p className="text-muted">Grounded knowledge from maintenance manuals and operating procedures</p>
+                    <p className="text-muted-foreground mt-1">Grounded knowledge from maintenance manuals and operating procedures</p>
                 </div>
                 <button
                     onClick={() => ragApi.index()}
@@ -69,21 +69,20 @@ export default function ChatPage() {
 
             <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto mb-4 flex flex-col gap-6 p-4 rounded-xl bg-card/30 border glass"
+                className="flex-1 overflow-y-auto mb-4 flex flex-col gap-4 p-6 rounded-xl bg-card/30 border"
             >
                 {messages.map((m, i) => (
-                    <div key={i} className={`flex gap-4 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                        <div className={`p-2 rounded-lg h-fit ${m.role === 'user' ? 'bg-primary' : 'bg-secondary'}`}>
-                            {m.role === 'user' ? <User size={20} /> : <Bot size={20} />}
+                    <div key={i} className={`flex items-start gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg mt-1 ${m.role === 'user' ? 'bg-primary' : 'bg-secondary'}`}>
+                            {m.role === 'user' ? <User size={16} /> : <Bot size={16} />}
                         </div>
-                        <div className={`flex flex-col gap-3 max-w-[80%] ${m.role === 'user' ? 'items-end' : ''}`}>
-                            <div className={`p-4 rounded-2xl ${m.role === 'user' ? 'bg-primary/20 rounded-tr-none' : 'bg-secondary rounded-tl-none'}`}>
-                                <p className="leading-relaxed">{m.text}</p>
+                        <div className={`flex flex-col gap-2 max-w-[75%] ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                            <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${m.role === 'user' ? 'bg-primary/20 rounded-tr-sm' : 'bg-secondary rounded-tl-sm'}`}>
+                                {m.text}
                             </div>
-
                             {m.citations && m.citations.length > 0 && (
-                                <div className="grid grid-cols-1 gap-3 mt-2">
-                                    <p className="text-xs font-bold text-muted uppercase tracking-wider">Citations:</p>
+                                <div className="flex flex-col gap-2 w-full mt-1">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-1">Sources</p>
                                     {m.citations.map((c, j) => (
                                         <CitationCard key={j} citation={c} />
                                     ))}
@@ -93,11 +92,13 @@ export default function ChatPage() {
                     </div>
                 ))}
                 {loading && (
-                    <div className="flex gap-4">
-                        <div className="p-2 rounded-lg bg-secondary">
-                            <Loader2 size={20} className="animate-spin" />
+                    <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-secondary mt-1">
+                            <Loader2 size={16} className="animate-spin" />
                         </div>
-                        <div className="p-4 rounded-2xl bg-secondary rounded-tl-none italic text-muted">Thinking...</div>
+                        <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-secondary text-sm italic text-muted-foreground">
+                            Thinking...
+                        </div>
                     </div>
                 )}
             </div>
@@ -108,15 +109,15 @@ export default function ChatPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask about maintenance, oil levels, solar cleaning..."
-                    className="flex-1 bg-card border p-4 rounded-xl focus:outline-none focus:border-primary transition-colors"
+                    className="flex-1 bg-card border p-4 rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
                     disabled={loading}
                 />
                 <button
                     type="submit"
-                    className="bg-primary p-4 px-8 rounded-xl font-bold hover:brightness-110 transition-all disabled:opacity-50"
+                    className="bg-primary p-4 px-6 rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
                     disabled={loading}
                 >
-                    <Send size={20} />
+                    <Send size={18} />
                 </button>
             </form>
         </div>

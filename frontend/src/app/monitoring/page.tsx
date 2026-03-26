@@ -164,7 +164,7 @@ export default function MonitoringPage() {
                         For more granular telemetry, visit the dedicated Prometheus and Grafana dashboards.
                     </p>
                     <div className="flex gap-4 mt-6">
-                        <a href="http://localhost:3000" target="_blank" className="p-2 px-4 bg-secondary rounded-lg text-sm hover:bg-muted transition-colors">Open Grafana</a>
+                        <a href="http://localhost:3001" target="_blank" className="p-2 px-4 bg-secondary rounded-lg text-sm hover:bg-muted transition-colors">Open Grafana</a>
                         <a href="http://localhost:9090" target="_blank" className="p-2 px-4 bg-secondary rounded-lg text-sm hover:bg-muted transition-colors">Open Prometheus</a>
                     </div>
                 </div>

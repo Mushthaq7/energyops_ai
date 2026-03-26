@@ -22,6 +22,8 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
+    HF_TOKEN: Optional[str] = None
+
     POSTGRES_SERVER: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str

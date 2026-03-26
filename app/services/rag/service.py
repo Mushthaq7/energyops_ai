@@ -1,6 +1,7 @@
 import os
 import glob
 import time
+import logging
 from typing import List, Dict, Optional
 
 from langchain_community.document_loaders import TextLoader
@@ -11,6 +12,41 @@ from langchain_core.documents import Document
 from langchain_community.llms import FakeListLLM
 
 from app.core.metrics import MODEL_RESPONSE_TIME, MODEL_REQUESTS, DOCUMENTS_INDEXED
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+FAISS_INDEX_PATH = "data/faiss_index"
+
+
+class _LocalLLM:
+    """Runs google/flan-t5-base locally via transformers pipeline.
+    Model is ~250 MB, downloaded once and cached. No API key required.
+    """
+    def __init__(self):
+        self._pipe = None  # lazy-loaded on first call
+
+    def _load(self):
+        if self._pipe is None:
+            from transformers import pipeline
+            logger.info("Loading flan-t5-base locally (first call may take a moment)...")
+            self._pipe = pipeline(
+                "text2text-generation",
+                model="google/flan-t5-base",
+                max_new_tokens=256,
+            )
+            logger.info("flan-t5-base loaded.")
+
+    def invoke(self, prompt: str) -> str:
+        self._load()
+        result = self._pipe(prompt, max_new_tokens=256)
+        return result[0]["generated_text"]
+
+
+def _build_llm():
+    """Always use the local flan-t5-base model. HF_TOKEN is only needed for embeddings auth."""
+    logger.info("LLM: google/flan-t5-base (local, CPU)")
+    return _LocalLLM()
 
 
 class RagService:
@@ -22,9 +58,16 @@ class RagService:
             chunk_size=500,
             chunk_overlap=50
         )
-        # Placeholder for LLM. In production, use ChatOpenAI or CTransformers
-        # self.llm = CTransformers(model="TheBloke/Mistral-7B-Instruct-v0.1-GGUF", model_type="mistral")
-        self.llm = FakeListLLM(responses=["This is a simulated AI response based on the retrieved documents."])
+        self.llm = _build_llm()
+        # Load persisted index if available
+        if os.path.exists(FAISS_INDEX_PATH):
+            try:
+                self.vector_store = FAISS.load_local(
+                    FAISS_INDEX_PATH, self.embeddings, allow_dangerous_deserialization=True
+                )
+                logger.info("Loaded FAISS index from %s", FAISS_INDEX_PATH)
+            except Exception as e:
+                logger.warning("Could not load FAISS index: %s", e)
 
     def load_documents(self) -> List[Document]:
         documents = []
@@ -40,13 +83,15 @@ class RagService:
         """Loads documents, chunks them, and creates a FAISS index."""
         docs = self.load_documents()
         if not docs:
-            print("No documents found to index.")
+            logger.warning("No documents found to index.")
             return
 
         chunks = self.text_splitter.split_documents(docs)
         self.vector_store = FAISS.from_documents(chunks, self.embeddings)
         DOCUMENTS_INDEXED.inc(len(docs))
-        print(f"Indexed {len(chunks)} chunks from {len(docs)} documents.")
+        os.makedirs(FAISS_INDEX_PATH, exist_ok=True)
+        self.vector_store.save_local(FAISS_INDEX_PATH)
+        logger.info("Indexed %d chunks from %d documents. Saved to %s", len(chunks), len(docs), FAISS_INDEX_PATH)
 
     def query(self, query_text: str, k: int = 3) -> List[Dict]:
         """Performs similarity search and returns relevant chunks."""

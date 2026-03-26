@@ -1,34 +1,34 @@
 # ⚡ EnergyOps AI — Full-Stack GenAI Energy Analytics Platform
 
-A sophisticated, high-performance platform for renewable energy operations. Featuring a **FastAPI** backend, **Next.js** dashboard, **RAG pipeline**, **Prometheus/Grafana** monitoring, and **MLflow** experiment tracking.
-
-![Dashboard Preview](https://via.placeholder.com/800x400/18181b/ffffff?text=EnergyOps+AI+Dashboard+Preview)
+A production-ready platform for renewable energy plant operations. Features a **FastAPI** backend, **Next.js** dashboard, **local RAG pipeline** (flan-t5-base + FAISS), **nginx reverse proxy**, **Prometheus/Grafana** monitoring, and **MLflow** experiment tracking — all orchestrated via Docker Compose.
 
 ---
 
 ## 📋 Table of Contents
 
 1. [🚀 Project Overview](#-project-overview)
-2. [🏗️ Architecture](#︎-architecture)
+2. [🏗️ Architecture](#️-architecture)
 3. [📁 Project Structure](#-project-structure)
 4. [🛠️ Prerequisites](#️-prerequisites)
 5. [📦 Quick Start (Docker)](#-quick-start-docker)
 6. [💻 Local Development Setup](#-local-development-setup)
 7. [📊 Monitoring & Metrics](#-monitoring--metrics)
 8. [🧠 RAG & AI Capabilities](#-rag--ai-capabilities)
-9. [🐛 Recent Stability Fixes](#-recent-stability-fixes)
-10. [☁️ Cloud Deployment](#-cloud-deployment)
+9. [☁️ Cloud Deployment](#️-cloud-deployment)
 
 ---
 
 ## 🚀 Project Overview
 
 **EnergyOps AI** is an enterprise-grade solution for renewable energy plant management.
-- **Dynamic Dashboard** — Real-time visualization of solar/wind production using Next.js 15 + Recharts.
-- **Intelligent RAG** — Context-aware AI assistant trained on maintenance manuals (FAISS + HuggingFace).
-- **Proactive Monitoring** — Full observability stack with Prometheus and custom Grafana dashboards.
-- **MLflow Tracking** — Detailed experiment logging for RAG performance and model evaluations.
-- **Model Fine-Tuning** — Support for QLoRA fine-tuning on domain-specific energy instructions.
+
+- **Dynamic Dashboard** — Real-time solar/wind production visualization (Next.js 15 + Recharts), live trend comparisons, and anomaly alerts.
+- **Local RAG Assistant** — Context-aware AI assistant powered by `google/flan-t5-base` running on-device (no API key needed) with FAISS vector search over maintenance manuals.
+- **Persistent FAISS Index** — Vector index saved to disk and reloaded on startup — no rebuild on cold start.
+- **Real Efficiency Metrics** — Renewable energy coverage ratio computed from actual DB data, not mocked values.
+- **Proactive Monitoring** — Full observability stack with Prometheus metrics and Grafana dashboards.
+- **MLflow Tracking** — Experiment logging for RAG latency, token counts, and citation counts.
+- **Production-Ready** — nginx reverse proxy, gunicorn multi-worker backend, containerized frontend, rate limiting, secrets via environment variables.
 
 ---
 
@@ -36,15 +36,18 @@ A sophisticated, high-performance platform for renewable energy operations. Feat
 
 ```mermaid
 graph TD
-    Client[Browser / Dashboard] -->|Next.js 15| Frontend[Frontend :3000]
-    Frontend -->|API Proxy| Backend[FastAPI Backend :8000]
+    Internet -->|Port 80| Nginx[nginx Reverse Proxy]
+    Nginx --> Frontend[Next.js Frontend :3000]
+    Nginx -->|/api/v1/*| Backend[FastAPI Backend :8000]
     Backend -->|SQLAlchemy| DB[(PostgreSQL :5432)]
-    Backend -->|FAISS| VectorStore[Vector DB]
-    Backend -->|LangChain| LLM[HuggingFace / Local LLM]
-    Backend -->|Export| Prometheus[Prometheus :9090]
-    Prometheus -->|Visualize| Grafana[Grafana :3000]
-    Backend -->|Log| MLflow[MLflow :5000]
+    Backend -->|FAISS| VectorStore[Vector Index - data/faiss_index/]
+    Backend -->|transformers| LLM[flan-t5-base - Local CPU/MPS]
+    Backend -->|Prometheus| Prometheus[Prometheus :9090]
+    Prometheus --> Grafana[Grafana :3001]
+    Backend -->|MLflow| MLflow[MLflow :5000]
 ```
+
+> `/metrics` is blocked at nginx — only Prometheus (internal Docker network) can scrape it.
 
 ---
 
@@ -52,17 +55,26 @@ graph TD
 
 ```
 energyops-ai/
-├── frontend/                # Next.js 15 Dashboard (React, Tailwind, Recharts)
-├── app/                     # FastAPI Backend Core
-│   ├── api/v1/              # API Endpoints (Energy, RAG, Eval)
-│   ├── core/                # Config, Metrics, Middleware
-│   ├── models/              # SQLAlchemy Database Models
-│   ├── schemas/             # Pydantic Response Schemas
-│   └── services/            # RAG & MLflow Logic
-├── data/                    # Knowledge Base (Manuals, Training Data)
-├── docker-compose.yml       # Full-Stack Orchestration
-├── prometheus.yml           # Monitoring Config
-└── generate_data.py         # Synthetic Production Data Generator
+├── frontend/                # Next.js 15 Dashboard
+│   ├── src/app/             # Pages: dashboard, chat, monitoring, settings
+│   ├── src/components/      # EnergyCharts, StatsCard, CitationCard, Sidebar
+│   ├── src/lib/api.ts       # Typed API client
+│   └── Dockerfile           # Multi-stage production build
+├── app/                     # FastAPI Backend
+│   ├── api/v1/endpoints/    # energy, rag, evaluation
+│   ├── core/                # Config, Metrics, Middleware, Exceptions
+│   ├── models/              # SQLAlchemy ORM models
+│   ├── schemas/             # Pydantic response schemas
+│   └── services/            # RAG (FAISS + flan-t5) & MLflow evaluation
+├── data/
+│   ├── documents/           # Knowledge base (.txt maintenance manuals)
+│   └── faiss_index/         # Persisted FAISS vector index (auto-created)
+├── nginx.conf               # Reverse proxy + rate limiting config
+├── docker-compose.yml       # Full-stack orchestration (7 services)
+├── Dockerfile               # Backend: gunicorn + uvicorn workers
+├── prometheus.yml           # Prometheus scrape config
+├── generate_data.py         # Synthetic 30-day production data generator
+└── evaluate_rag.py          # MLflow RAG evaluation runner
 ```
 
 ---
@@ -71,105 +83,165 @@ energyops-ai/
 
 - **Python 3.9+**
 - **Node.js 18+** & **npm**
-- **Docker Desktop**
-- **HuggingFace Account** (for RAG embeddings)
+- **Docker Desktop** (for Docker deployment)
+
+> No HuggingFace API key required — the RAG LLM runs locally.
 
 ---
 
 ## 📦 Quick Start (Docker)
 
-To launch the entire platform in minutes:
-
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Mushthaq7/energyops_ai.git
-cd energyops_ai
+cd energyops-ai
 
 # 2. Configure environment
 cp .env.example .env
-# Edit .env and add your HF_TOKEN=hf_...
+# Set strong values for POSTGRES_PASSWORD and GRAFANA_PASSWORD
 
-# 3. Spin up the infrastructure
+# 3. Build and start all services
 docker-compose up -d --build
+
+# 4. Seed the database with 30 days of synthetic data
+docker-compose exec api python generate_data.py
 ```
 
-**Services now live:**
-- **Dashboard:** [http://localhost:3000](http://localhost:3000)
-- **API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Grafana:** [http://localhost:3000](http://localhost:3000) (User: `admin` / `admin`)
-- **MLflow:** [http://localhost:5000](http://localhost:5000)
+**Services available after startup:**
+
+| Service | URL | Notes |
+|---|---|---|
+| Dashboard | http://localhost | Main entry via nginx |
+| API Docs | http://localhost/api/v1/docs | Swagger UI... wait, use: http://localhost:8000/docs locally |
+| Grafana | http://localhost:3001 | Login with `GRAFANA_USER` / `GRAFANA_PASSWORD` from `.env` |
+| MLflow | http://localhost:5000 | Experiment tracking |
+| Prometheus | http://localhost:9090 | Internal only in prod |
 
 ---
 
 ## 💻 Local Development Setup
 
-### Backend Setup
+### Backend
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+
+# Seed the database (requires PostgreSQL running locally)
 python generate_data.py
+
+# Start with auto-reload
 python -m uvicorn app.main:app --reload
 ```
 
-### Frontend Setup
+### Frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-> **Pro Tip:** If you encounter a `403` error when generating data, ensure you've added your [HuggingFace Access Token](https://huggingface.co/settings/tokens) to the `.env` file under `HF_TOKEN`.
+Both run concurrently. The frontend proxies `/api/v1/*` to `http://localhost:8000` via Next.js rewrites.
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and fill in:
+
+```env
+POSTGRES_SERVER=localhost
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=energyops_db
+POSTGRES_PORT=5432
+
+GRAFANA_USER=admin
+GRAFANA_PASSWORD=your_grafana_password
+
+# Optional — only needed for HF embeddings auth on gated models
+HF_TOKEN=hf_...
+```
 
 ---
 
 ## 📊 Monitoring & Metrics
 
-The system exposes deep operational metrics accessible via `/metrics`:
+Prometheus scrapes the backend every 15 seconds. Available metrics:
 
-- `http_request_duration_seconds`: API latency profiles.
-- `model_response_duration_seconds`: RAG retrieval vs. generation time.
-- `documents_indexed_total`: Real-time RAG capacity tracking.
+| Metric | Description |
+|---|---|
+| `http_request_duration_seconds` | API latency by method/path |
+| `http_requests_total` | Request count by status code |
+| `model_response_duration_seconds` | RAG retrieval and generation time |
+| `documents_indexed_total` | Documents loaded into FAISS |
+| `active_requests` | In-flight request gauge |
 
-**Grafana Dashboards** are pre-configured to visualize these metrics directly from Prometheus.
+Access Grafana at **http://localhost:3001** (Docker) to visualize these in real time.
+
+> The `/metrics` endpoint is blocked by nginx for public traffic — only Prometheus on the internal Docker network can reach it.
 
 ---
 
 ## 🧠 RAG & AI Capabilities
 
-### Asking the AI
-The RAG pipeline allows maintenance engineers to ask complex operational questions:
+### How it works
+
+1. Maintenance `.txt` documents in `data/documents/` are chunked (500 tokens, 50 overlap) and embedded using `all-MiniLM-L6-v2`.
+2. The FAISS index is built and **saved to `data/faiss_index/`** — reloaded on every restart (no rebuild needed).
+3. At query time, top-3 relevant chunks are retrieved and passed as context to `google/flan-t5-base` running locally.
+4. The answer and citations are returned to the frontend.
+
+### Ask the AI
+
 ```bash
 curl -X POST http://localhost:8000/api/v1/rag/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "How do I check wind turbine gearbox oil levels?"}'
 ```
 
-### Evaluation
-Use the built-in evaluation suite to track LLM accuracy and latency in MLflow:
+### Re-index after adding documents
+
+Drop new `.txt` files into `data/documents/`, then:
+
 ```bash
-python evaluate_rag.py
+curl -X POST http://localhost:8000/api/v1/rag/index
 ```
 
----
+### Evaluation (MLflow)
 
-## 🐛 Recent Stability Fixes (v1.1)
+```bash
+python evaluate_rag.py
+# or via API:
+curl -X POST http://localhost:8000/api/v1/evaluation/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{"questions": ["What causes solar panel degradation?"]}'
+```
 
-We recently applied 10 critical stability fixes:
-1. **Schema Alignment:** Fixed backend/frontend field mismatches (`power_output` → `solar_output`).
-2. **Auto-DB Init:** Tables are now automatically created on API startup using `Base.metadata.create_all`.
-3. **Chart Accuracy:** Production charts now properly visualize mixed Solar (Amber) and Wind (Blue) streams.
-4. **Credential Safety:** Removed hardcoded local paths and users; now fully environment-driven.
-5. **RAG Cleanup:** Removed "teapot" artifacts from the knowledge base to ensure technical accuracy.
+View results at **http://localhost:5000**.
 
 ---
 
 ## ☁️ Cloud Deployment
 
-- **Azure:** Deploy via **Azure Container Apps** or **VMs** using the provided `docker-compose.yml`.
-- **GCP:** Use **Cloud Run** for the API and **GCE** for the monitoring stack.
+The entire stack runs behind nginx on port 80. To deploy on any cloud VM:
+
+```bash
+# On your server
+git clone https://github.com/Mushthaq7/energyops_ai.git
+cd energyops-ai
+cp .env.example .env   # fill in strong passwords
+docker-compose up -d --build
+```
+
+For **HTTPS**, place Caddy or Certbot in front of nginx with your domain.
+
+**Recommended platforms:**
+- **Railway / Render** — deploy backend and frontend as separate services
+- **Azure Container Apps** — use the provided `docker-compose.yml`
+- **GCP Cloud Run** — containerized API + frontend work out of the box
 
 ---
 
-**Built with ❤️ for Energy Efficiency.**
-FastAPI · Next.js · LangChain · Recharts · Prometheus · MLflow
+**Built for Energy Efficiency.**
+FastAPI · Next.js · LangChain · flan-t5-base · FAISS · Recharts · Prometheus · MLflow · nginx

@@ -16,19 +16,22 @@ export default function DashboardPage() {
   const [latestData, setLatestData] = useState<any[]>([]);
   const [anomalies, setAnomalies] = useState<any[]>([]);
   const [summary, setSummary] = useState<any[]>([]);
+  const [trends, setTrends] = useState<{ production_change_pct: number; efficiency_change_pct: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [latest, anomal, summ] = await Promise.all([
+      const [latest, anomal, summ, trnd] = await Promise.all([
         energyApi.getLatest(),
         energyApi.getAnomalies(),
-        energyApi.getSummary()
+        energyApi.getSummary(),
+        energyApi.getTrends(),
       ]);
       setLatestData(latest);
       setAnomalies(anomal);
       setSummary(summ);
+      setTrends(trnd);
     } catch (err) {
       console.error("Failed to load dashboard data", err);
     } finally {
@@ -67,13 +70,13 @@ export default function DashboardPage() {
           title="Total Production"
           value={`${totalOutput} kWh`}
           icon={Zap}
-          trend="+12.5%"
+          trend={trends ? `${trends.production_change_pct >= 0 ? "+" : ""}${trends.production_change_pct}%` : undefined}
         />
         <StatsCard
           title="Avg Efficiency"
           value={`${avgEfficiency}%`}
           icon={BarChart3}
-          trend="+2.1%"
+          trend={trends ? `${trends.efficiency_change_pct >= 0 ? "+" : ""}${trends.efficiency_change_pct}%` : undefined}
           color="#22c55e"
         />
         <StatsCard

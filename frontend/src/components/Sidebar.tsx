@@ -17,6 +17,7 @@ const Sidebar = () => {
         { name: "Dashboard", href: "/", icon: LayoutDashboard },
         { name: "RAG Chat", href: "/chat", icon: MessageSquare },
         { name: "Monitoring", href: "/monitoring", icon: Activity },
+        { name: "Settings", href: "/settings", icon: Settings },
     ];
 
     return (
@@ -46,13 +47,6 @@ const Sidebar = () => {
                     );
                 })}
             </nav>
-
-            <div style={{ marginTop: 'auto', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
-                <div className="flex items-center gap-4 p-3 text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
-                    <Settings size={20} />
-                    <span className="font-medium">Settings</span>
-                </div>
-            </div>
         </aside>
     );
 };

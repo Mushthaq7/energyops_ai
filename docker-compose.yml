@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       POSTGRES_DB: ${POSTGRES_DB:-energyops_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -37,11 +37,14 @@ services:
     environment:
       - POSTGRES_SERVER=db
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB:-energyops_db}
       - POSTGRES_PORT=5432
-    ports:
-      - "8000:8000"
+      - HF_TOKEN=${HF_TOKEN:-}
+      - BACKEND_CORS_ORIGINS=["http://localhost"]
+    # Port NOT exposed publicly — nginx proxies instead
+    expose:
+      - "8000"
     depends_on:
       db:
         condition: service_healthy
@@ -54,6 +57,39 @@ services:
       timeout: 10s
       retries: 3
 
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://api:8000
+    container_name: energyops-frontend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (single public entry point)
+  nginx:
+    image: nginx:alpine
+    container_name: energyops-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+      - frontend
+
   # MLflow Tracking Server
   mlflow:
     image: python:3.11-slim
@@ -61,8 +97,8 @@ services:
     restart: unless-stopped
     command: >
       bash -c "pip install mlflow && mlflow ui --host 0.0.0.0 --port 5000"
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     volumes:
       - ./mlruns:/mlruns
     environment:
@@ -76,8 +112,8 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
+    expose:
+      - "9090"
     depends_on:
       - api
 
@@ -87,10 +123,12 @@ services:
     container_name: energyops-grafana
     restart: unless-stopped
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    ports:
-      - "3000:3000"
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set in .env}
+      - GF_SERVER_ROOT_URL=http://localhost/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    expose:
+      - "3000"
     volumes:
       - grafana_data:/var/lib/grafana
     depends_on:
